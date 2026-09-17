@@ -1,0 +1,42 @@
+ai-engineering-hub-main.zip
+ai-engineering-hub-main/
+baseline_agentic_rag/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Vector DB / local storage
+qdrant_storage/
+chroma_db/
+vector_store/
+
+# Models
+models/
+checkpoints/
+
+# Temporary
+tmp/
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
