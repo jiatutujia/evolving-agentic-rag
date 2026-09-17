@@ -8,6 +8,8 @@ dependencies = [
     "markitdown[pdf]",
     "chonkie[semantic]",
     "qdrant-client[fastembed]>=1.19,<2",
+    "beir",
+    "sentence-transformers",
 ]
 
 [build-system]

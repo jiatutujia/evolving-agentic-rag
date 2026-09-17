@@ -1,0 +1,143 @@
+{
+  "version": "v0-vector-retrieval",
+  "document": "dspy.pdf",
+  "indexed_chunks": 324,
+  "top_k": 3,
+  "queries": [
+    {
+      "query_id": 1,
+      "query": "What is DSPy?",
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.7089681381848949,
+          "chunk_id": 36,
+          "source": "dspy.pdf",
+          "text": "findings from applying the DSPy compiler. "
+        },
+        {
+          "rank": 2,
+          "score": 0.641027473113793,
+          "chunk_id": 39,
+          "source": "dspy.pdf",
+          "text": "3 THE DSPY PROGRAMMING MODEL\nWepresentDSPy,whichtreatsLMsasabstractdevicesfortextgeneration,3andoptimizestheirus-\nageinarbitrarycomputationalgraphs. DSPyprogramsareexpressedinPython:eachprogramtakes\nthetaskinput(e.g., aquestiontoanswerorapapertosummarize)andreturnstheoutput(e.g., an\nanswerorasummary)afteraseriesofsteps. DSPycontributesthreeabstractionstowardautomatic\noptimization: signatures,modules,andteleprompters. Signaturesabstracttheinput/outputbehavior\nofamodule;modulesreplaceexistinghand-promptingtechniquesandcanbecomposedinarbitrary\npipelines;andtelepromptersoptimizeallmodulesinthepipelinetomaximizeametric.\n3WeassumeaccesstooneormoreLMs,whichconsumeapromptstringandreturntextcompletions.This\nmaybeapromptableLMcapableofin-contextlearning(e.g.,GPT-3.5orLlama2-7b)orasmallerfinetuneable\nLM(e.g.,T5-base).AnLMmaybeselectedasthedefault;operationswilluseitunlessconfiguredotherwise.\n3\n\nPreprint\n3.1 NATURALLANGUAGESIGNATURESCANABSTRACTPROMPTING&FINETUNING\nInsteadoffree-formstringprompts,DSPyprogramsusenaturallanguagesignaturestoassignwork\ntotheLM.ADSPysignatureisnatural-languagetypeddeclarationofafunction:ashortdeclarative\nspec that tells DSPy what a text transformation needs to do (e.g., “consume questions and return\nanswers”), rather than how a specific LM should be prompted to implement that behavior. More\nformally,aDSPysignatureisatupleofinputfieldsandoutputfields(andanoptionalinstruction).\nAfieldconsistsoffieldnameandoptionalmetadata.4 Intypicalusage,therolesoffieldsareinferred\n"
+        },
+        {
+          "rank": 3,
+          "score": 0.6394351544630879,
+          "chunk_id": 102,
+          "source": "dspy.pdf",
+          "text": "hypothesis that DSPy can cut the need for hand-crafted prompts. "
+        }
+      ]
+    },
+    {
+      "query_id": 2,
+      "query": "What are the main abstractions in DSPy?",
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.7573500208726739,
+          "chunk_id": 229,
+          "source": "dspy.pdf",
+          "text": "These off-the-shelf higher-level abstractions contrast with DSPy’s focus on introducing core com-\nposable operators. In particular, DSPy introduces signatures (to abstract prompts), modules (to\nabstractpromptingtechniques),andteleprompterstoactasoptimizersforarbitraryimperativecode\n(DSPy programs) that chain modules together. "
+        },
+        {
+          "rank": 2,
+          "score": 0.693280919510624,
+          "chunk_id": 36,
+          "source": "dspy.pdf",
+          "text": "findings from applying the DSPy compiler. "
+        },
+        {
+          "rank": 3,
+          "score": 0.6527826186924832,
+          "chunk_id": 39,
+          "source": "dspy.pdf",
+          "text": "3 THE DSPY PROGRAMMING MODEL\nWepresentDSPy,whichtreatsLMsasabstractdevicesfortextgeneration,3andoptimizestheirus-\nageinarbitrarycomputationalgraphs. DSPyprogramsareexpressedinPython:eachprogramtakes\nthetaskinput(e.g., aquestiontoanswerorapapertosummarize)andreturnstheoutput(e.g., an\nanswerorasummary)afteraseriesofsteps. DSPycontributesthreeabstractionstowardautomatic\noptimization: signatures,modules,andteleprompters. Signaturesabstracttheinput/outputbehavior\nofamodule;modulesreplaceexistinghand-promptingtechniquesandcanbecomposedinarbitrary\npipelines;andtelepromptersoptimizeallmodulesinthepipelinetomaximizeametric.\n3WeassumeaccesstooneormoreLMs,whichconsumeapromptstringandreturntextcompletions.This\nmaybeapromptableLMcapableofin-contextlearning(e.g.,GPT-3.5orLlama2-7b)orasmallerfinetuneable\nLM(e.g.,T5-base).AnLMmaybeselectedasthedefault;operationswilluseitunlessconfiguredotherwise.\n3\n\nPreprint\n3.1 NATURALLANGUAGESIGNATURESCANABSTRACTPROMPTING&FINETUNING\nInsteadoffree-formstringprompts,DSPyprogramsusenaturallanguagesignaturestoassignwork\ntotheLM.ADSPysignatureisnatural-languagetypeddeclarationofafunction:ashortdeclarative\nspec that tells DSPy what a text transformation needs to do (e.g., “consume questions and return\nanswers”), rather than how a specific LM should be prompted to implement that behavior. More\nformally,aDSPysignatureisatupleofinputfieldsandoutputfields(andanoptionalinstruction).\nAfieldconsistsoffieldnameandoptionalmetadata.4 Intypicalusage,therolesoffieldsareinferred\n"
+        }
+      ]
+    },
+    {
+      "query_id": 3,
+      "query": "What is a DSPy signature?",
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.6244130097932006,
+          "chunk_id": 229,
+          "source": "dspy.pdf",
+          "text": "These off-the-shelf higher-level abstractions contrast with DSPy’s focus on introducing core com-\nposable operators. In particular, DSPy introduces signatures (to abstract prompts), modules (to\nabstractpromptingtechniques),andteleprompterstoactasoptimizersforarbitraryimperativecode\n(DSPy programs) that chain modules together. "
+        },
+        {
+          "rank": 2,
+          "score": 0.6236222054770604,
+          "chunk_id": 50,
+          "source": "dspy.pdf",
+          "text": "# Modify signature from ‘*inputs -> *outputs‘ to ‘*inputs -> rationale, *outputs‘.\n3\n4 rationale_field = dspy.OutputField(prefix=\"Reasoning: Let’s think step by step.\")\n|     | signature | = dspy.Signature(signature).prepend_output_field(rationale_field) |     |     |     |     |     |\n| --- | --------- | ----------------------------------------------------------------- | --- | --- | --- | --- | --- |\n5\n6\n| 7   | # Declare    | a sub-module              | with | the modified | signature. |     |     |\n| --- | ------------ | ------------------------- | ---- | ------------ | ---------- | --- | --- |\n|     | self.predict | = dspy.Predict(signature) |      |              |            |     |     |\n8\n9\n|     | def forward(self, | **kwargs): |     |     |     |     |     |\n| --- | ----------------- | ---------- | --- | --- | --- | --- | --- |\n10\n| 11  | # Just | forward the            | inputs | to the sub-module. |     |     |     |\n| --- | ------ | ---------------------- | ------ | ------------------ | --- | --- | --- |\n| 12  | return | self.predict(**kwargs) |        |                    |     |     |     |\n"
+        },
+        {
+          "rank": 3,
+          "score": 0.6045489559533488,
+          "chunk_id": 36,
+          "source": "dspy.pdf",
+          "text": "findings from applying the DSPy compiler. "
+        }
+      ]
+    },
+    {
+      "query_id": 4,
+      "query": "What is a teleprompter in DSPy?",
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.6194455095672229,
+          "chunk_id": 66,
+          "source": "dspy.pdf",
+          "text": "For each unique predictor\np, the teleprompter may generate candidate values for the parameters of p: the instructions, field\ndescriptions,or—mostimportantly—demonstrations(i.e.,exampleinput–outputpairs). Inthisiter-\n6\n\nPreprint\nationofDSPy,wefocusondemonstrationsandfindthatsimplerejection-sampling-likeapproaches\ncanhelpbootstraphighlyeffectivemulti-stagesystems.\nConsiderthesimplestnon-trivialteleprompterinDSPy,BootstrapFewShot(simplifiedpseudocode\nin Appendix E.1). This teleprompter will simulate a teacher program (or, if unset, the zero-shot\n"
+        },
+        {
+          "rank": 2,
+          "score": 0.5870088249056709,
+          "chunk_id": 103,
+          "source": "dspy.pdf",
+          "text": "Beyond this, we see that the\nreflectionprogram,whileonlyafewlineslongerthantheothers,isaclearwinner,thoughCoTis\nquiteeffectivewithensemble. Overall,thebootstrapcompilationprocedureleadstolargegains\nforeveryprogram,acrossbothLMs. Indeed,allprogramsinthistableareexpressedbycomposing\ntwo to four DSPy modules and teleprompters, and they reveal overall that—in the new paradigm\nprescribed by DSPy—it’s composing the right generic modules, rather than manipulating string\nprompts,thatimprovesdifferentLMsfrom4–20%accuracyto49–88%accuracy.\nWe can informally compare with the following. Zhang et al. (2022) reports 48% for\ntext-davinci-002, which aligns closely with our llama2-13b-chat results, and reports 59.4%\nwith codex when employing a manual CoT approach and 62.8% with an automatic CoT method.\nWang et al. (2022b) report 57% for CoT prompting with PaLM 540-B, which becomes 74% upon\naddingself-consistency.TheLlama2authors(Touvronetal.,2023)presents28.7%forllama2-13b,\n42.2%forllama2-34b,and56.8%forllama2-70b. Intriguingly,ourprogramwiththe13bvariant\nofthemodeliscompetitivewiththeir34b-basedresultseventhoughwedon’tusehumanreasoning\nchainsinourprogram. Zhaoetal.(2023b)reports80.8%forCoTwithgpt-3.5-turbofromApril\n2023. The GPT-4 authors (OpenAI, 2023) reports that GPT-3.5 scores 57.1% and GPT-4 elevates\nthisto92%buttheynotethatGPT-4wasinfactpre-trainedonasubsetofGSM8K’strainingset.\n9\n\nPreprint\n"
+        },
+        {
+          "rank": 3,
+          "score": 0.5767322243082957,
+          "chunk_id": 34,
+          "source": "dspy.pdf",
+          "text": "DSPy seeks to generalize this space: it offers a rich framework for optimizing arbitrary\npipelinesfromhigh-leveldeclarativesignatures,bybootstrappinghigh-qualitymulti-stagedemon-\nstrations with constraints. In this framework, DSPy teleprompters may apply optimization using\nmodel selection techniques like cross-validation or, in principle, with sophisticated techniques in-\n"
+        }
+      ]
+    },
+    {
+      "query_id": 5,
+      "query": "How does DSPy reduce manual prompt engineering?",
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.8523981537693608,
+          "chunk_id": 102,
+          "source": "dspy.pdf",
+          "text": "hypothesis that DSPy can cut the need for hand-crafted prompts. "
+        },
+        {
+          "rank": 2,
+          "score": 0.7025702003217004,
+          "chunk_id": 36,
+          "source": "dspy.pdf",
+          "text": "findings from applying the DSPy compiler. "
+        },
+        {
+          "rank": 3,
+          "score": 0.7004987327190655,
+          "chunk_id": 233,
+          "source": "dspy.pdf",
+          "text": "files and and 42 prompt.py files. DSPy, on the other hand, provides a structured framework that\nautomaticallybootstrapsprompts. Thelibraryitselfdoesnotcontainasinglehand-writtenprompt\ndemonstrationforanytasksatthetimeofwriting,despitetheveryhighqualitywithvariousLMs.\n"
+        }
+      ]
+    }
+  ]
+}
