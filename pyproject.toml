@@ -1,0 +1,18 @@
+[project]
+name = "evolving-agentic-rag"
+version = "0.1.0"
+description = "Self-Evolving Agentic RAG with adaptive retrieval, memory, reflection and evaluation."
+requires-python = ">=3.11,<3.12"
+
+dependencies = [
+    "markitdown[pdf]",
+    "chonkie[semantic]",
+    "qdrant-client[fastembed]>=1.19,<2",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
