@@ -16,7 +16,8 @@ env/
 # Secrets
 .env
 .env.local
-
+# Local test documents
+data/*.pdf
 # IDE
 .vscode/
 .idea/
