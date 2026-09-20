@@ -13,6 +13,14 @@ from app.reflection.reflector import (
     Reflector,
 )
 
+from app.reward.reward_calculator import (
+    RewardCalculator,
+)
+
+from app.reward.reward_history import (
+    RewardHistory,
+)
+
 from app.retrieval.document_search import (
     DocumentSearcher,
 )
@@ -29,48 +37,59 @@ from app.routing.query_router import (
     QueryRouter,
 )
 
-from app.strategy.memory_strategy import (
-    MemoryStrategyAdvisor,
+from app.strategy.reward_strategy import (
+    RewardAwareStrategyAdvisor,
 )
 
 
 class AdaptiveRetriever:
     """
-    Self-improving adaptive RAG pipeline.
+    Self-evolving adaptive RAG pipeline.
 
-    V5 pipeline:
+    V6 Pipeline
+    -----------
 
-        Query
-          ↓
-        Experience Memory
-          ↓
-        Memory Strategy?
-        /              \
-      Yes               No
-       ↓                 ↓
-    Memory            QueryRouter
-    Strategy
-       \                /
-        \              /
-            Retrieval
-               ↓
-            Reranker
-               ↓
-             Grader
-               ↓
-        Retry / Generation
-               ↓
-           Reflection
-               ↓
-        Experience Memory
+    Query
+      ↓
+    Experience Memory
+      +
+    Reward History
+      ↓
+    Reward-Aware Strategy
+      ↓
+    direct / rewrite / external_search
+      ↓
+    Retrieval
+      ↓
+    Reranker
+      ↓
+    Retrieval Grader
+      ↓
+    Retry / Generation
+      ↓
+    Reflection
+      ↓
+    ┌───────────────────────┐
+    │                       │
+    Experience Memory    Reward History
+    │                       │
+    └────────────┬──────────┘
+                 ↓
+          Future Strategy
     """
 
     def __init__(
         self,
         document_path: str | Path,
+
         memory_path: str | Path = (
             "memory/experience_memory.json"
         ),
+
+        reward_history_path: str | Path = (
+            "memory/reward_history.json"
+        ),
+
         memory_min_similarity: float = 0.75,
     ) -> None:
 
@@ -82,8 +101,12 @@ class AdaptiveRetriever:
         # Knowledge Retrieval
         # ==================================================
 
-        self.searcher = DocumentSearcher(
-            file_path=self.document_path
+        self.searcher = (
+            DocumentSearcher(
+                file_path=(
+                    self.document_path
+                )
+            )
         )
 
         print(
@@ -94,55 +117,101 @@ class AdaptiveRetriever:
         self.searcher.index_document()
 
         # ==================================================
-        # Static Router
+        # Static Query Router
         # ==================================================
 
-        self.router = QueryRouter()
+        self.router = (
+            QueryRouter()
+        )
 
         # ==================================================
-        # Reranker
+        # CrossEncoder Reranker
         # ==================================================
 
-        self.reranker = Reranker()
+        self.reranker = (
+            Reranker()
+        )
 
         # ==================================================
         # Retrieval Grader
         # ==================================================
 
-        self.grader = RetrievalGrader(
-            score_threshold=-0.5,
-            min_relevant_docs=1,
-            inspect_top_k=3,
+        self.grader = (
+            RetrievalGrader(
+                score_threshold=-0.5,
+                min_relevant_docs=1,
+                inspect_top_k=3,
+            )
         )
 
         # ==================================================
         # Reflection
         # ==================================================
 
-        self.reflector = Reflector()
+        self.reflector = (
+            Reflector()
+        )
 
         # ==================================================
         # Experience Memory
         # ==================================================
 
-        self.memory = ExperienceMemory(
-            memory_path=memory_path
-        )
-
-        self.memory_advisor = (
-            MemoryStrategyAdvisor(
-                memory=self.memory,
-                min_similarity=(
-                    memory_min_similarity
-                ),
+        self.memory = (
+            ExperienceMemory(
+                memory_path=(
+                    memory_path
+                )
             )
         )
 
         # ==================================================
-        # Lazy-loaded models
+        # Reward
+        # ==================================================
+
+        self.reward_calculator = (
+            RewardCalculator()
+        )
+
+        self.reward_history = (
+            RewardHistory(
+                path=(
+                    reward_history_path
+                )
+            )
+        )
+
+        # ==================================================
+        # Reward-aware Strategy
+        # ==================================================
+
+        self.strategy_advisor = (
+            RewardAwareStrategyAdvisor(
+                memory=(
+                    self.memory
+                ),
+
+                reward_history=(
+                    self.reward_history
+                ),
+
+                min_similarity=(
+                    memory_min_similarity
+                ),
+
+                top_k=5,
+
+                similarity_weight=0.8,
+
+                reward_weight=0.2,
+            )
+        )
+
+        # ==================================================
+        # Lazy Models
         # ==================================================
 
         self._rewriter = None
+
         self._answer_generator = None
 
     # ======================================================
@@ -167,7 +236,9 @@ class AdaptiveRetriever:
                 QueryRewriter()
             )
 
-        return self._rewriter
+        return (
+            self._rewriter
+        )
 
     # ======================================================
     # Lazy Answer Generator
@@ -191,7 +262,9 @@ class AdaptiveRetriever:
                 AnswerGenerator()
             )
 
-        return self._answer_generator
+        return (
+            self._answer_generator
+        )
 
     # ======================================================
     # Direct Retrieval
@@ -209,11 +282,15 @@ class AdaptiveRetriever:
             )
         )
 
-        return self.reranker.rerank(
-            query=query,
-            documents=candidates,
-            top_k=5,
+        results = (
+            self.reranker.rerank(
+                query=query,
+                documents=candidates,
+                top_k=5,
+            )
         )
+
+        return results
 
     # ======================================================
     # Rewrite Retrieval
@@ -222,7 +299,10 @@ class AdaptiveRetriever:
     def _retrieve_with_rewrite(
         self,
         query: str,
-    ) -> tuple[str, list[dict]]:
+    ) -> tuple[
+        str,
+        list[dict],
+    ]:
 
         rewriter = (
             self._get_rewriter()
@@ -239,6 +319,10 @@ class AdaptiveRetriever:
             f"{rewritten_query}"
         )
 
+        # --------------------------------------------------
+        # Original query retrieval
+        # --------------------------------------------------
+
         original_results = (
             self.searcher.search(
                 query=query,
@@ -246,12 +330,22 @@ class AdaptiveRetriever:
             )
         )
 
+        # --------------------------------------------------
+        # Rewritten query retrieval
+        # --------------------------------------------------
+
         rewritten_results = (
             self.searcher.search(
-                query=rewritten_query,
+                query=(
+                    rewritten_query
+                ),
                 limit=10,
             )
         )
+
+        # --------------------------------------------------
+        # RRF
+        # --------------------------------------------------
 
         fused_results = (
             reciprocal_rank_fusion(
@@ -263,10 +357,16 @@ class AdaptiveRetriever:
             )
         )
 
+        # --------------------------------------------------
+        # Final reranking always uses ORIGINAL query
+        # --------------------------------------------------
+
         results = (
             self.reranker.rerank(
                 query=query,
-                documents=fused_results,
+                documents=(
+                    fused_results
+                ),
                 top_k=5,
             )
         )
@@ -277,7 +377,7 @@ class AdaptiveRetriever:
         )
 
     # ======================================================
-    # Empty Grade
+    # Grade used when local retrieval is skipped
     # ======================================================
 
     def _external_search_grade(
@@ -301,13 +401,17 @@ class AdaptiveRetriever:
 
             reason=(
                 "Local retrieval was skipped "
-                "because experience memory "
+                "because the learned strategy "
                 "recommended external search."
             ),
         )
 
     # ======================================================
-    # Reflection + Memory Write
+    # Reflection
+    # +
+    # Experience Memory
+    # +
+    # Reward
     # ======================================================
 
     def _reflect_and_store(
@@ -315,20 +419,75 @@ class AdaptiveRetriever:
         execution: dict,
     ) -> dict:
 
+        # --------------------------------------------------
+        # Reflection
+        # --------------------------------------------------
+
         reflection = (
             self.reflector.reflect(
                 execution
             )
         )
 
+        # --------------------------------------------------
+        # Experience Memory
+        # --------------------------------------------------
+
         experience = (
             self.memory.add(
-                query=execution[
-                    "query"
-                ],
-                reflection=reflection,
+                query=(
+                    execution[
+                        "query"
+                    ]
+                ),
+
+                reflection=(
+                    reflection
+                ),
             )
         )
+
+        # --------------------------------------------------
+        # Reward
+        # --------------------------------------------------
+
+        reward = (
+            self.reward_calculator.calculate(
+                execution
+            )
+        )
+
+        # --------------------------------------------------
+        # Reward History
+        # --------------------------------------------------
+
+        reward_record = (
+            self.reward_history.add(
+                query=(
+                    execution[
+                        "query"
+                    ]
+                ),
+
+                strategy=(
+                    reward.strategy
+                ),
+
+                reward=(
+                    reward.total_reward
+                ),
+
+                answer_status=(
+                    execution[
+                        "answer_status"
+                    ]
+                ),
+            )
+        )
+
+        # --------------------------------------------------
+        # Add learning state
+        # --------------------------------------------------
 
         execution[
             "reflection"
@@ -339,8 +498,28 @@ class AdaptiveRetriever:
         ] = experience
 
         execution[
+            "reward"
+        ] = reward
+
+        execution[
+            "reward_record"
+        ] = reward_record
+
+        execution[
             "memory_size"
-        ] = self.memory.size()
+        ] = (
+            self.memory.size()
+        )
+
+        execution[
+            "reward_history_size"
+        ] = (
+            self.reward_history.size()
+        )
+
+        # --------------------------------------------------
+        # Logging
+        # --------------------------------------------------
 
         print(
             "\nReflection"
@@ -366,14 +545,57 @@ class AdaptiveRetriever:
         )
 
         print(
-            f"Memory Size: "
+            "\nReward"
+        )
+
+        print(
+            "-" * 50
+        )
+
+        print(
+            f"Executed Strategy : "
+            f"{reward.strategy}"
+        )
+
+        print(
+            f"Quality Reward    : "
+            f"{reward.quality_reward:.2f}"
+        )
+
+        print(
+            f"Rewrite Penalty   : "
+            f"{reward.rewrite_penalty:.2f}"
+        )
+
+        print(
+            f"Retry Penalty     : "
+            f"{reward.retry_penalty:.2f}"
+        )
+
+        print(
+            f"Failure Penalty   : "
+            f"{reward.failure_penalty:.2f}"
+        )
+
+        print(
+            f"Total Reward      : "
+            f"{reward.total_reward:.2f}"
+        )
+
+        print(
+            f"\nMemory Size       : "
             f"{self.memory.size()}"
+        )
+
+        print(
+            f"Reward History    : "
+            f"{self.reward_history.size()}"
         )
 
         return execution
 
     # ======================================================
-    # Main Retrieval
+    # Main Pipeline
     # ======================================================
 
     def retrieve(
@@ -382,7 +604,7 @@ class AdaptiveRetriever:
     ) -> dict:
 
         # ==================================================
-        # V3 Router baseline
+        # Static Router Baseline
         # ==================================================
 
         router_decision = (
@@ -402,27 +624,27 @@ class AdaptiveRetriever:
         )
 
         # ==================================================
-        # V5 Experience Memory
+        # Reward-Aware Policy
         # ==================================================
 
-        memory_decision = (
-            self.memory_advisor.advise(
+        policy_decision = (
+            self.strategy_advisor.advise(
                 query
             )
         )
 
-        strategy_source = "router"
+        if policy_decision is not None:
 
-        if memory_decision is not None:
-
-            strategy_source = "memory"
+            strategy_source = (
+                "reward_memory"
+            )
 
             selected_strategy = (
-                memory_decision.strategy
+                policy_decision.strategy
             )
 
             print(
-                "\nMemory Strategy Found"
+                "\nReward-Aware Strategy Found"
             )
 
             print(
@@ -430,34 +652,68 @@ class AdaptiveRetriever:
             )
 
             print(
-                f"Strategy   : "
-                f"{memory_decision.strategy}"
+                f"Strategy       : "
+                f"{policy_decision.strategy}"
             )
 
             print(
-                f"Similarity : "
-                f"{memory_decision.similarity:.4f}"
+                f"Similarity     : "
+                f"{policy_decision.similarity:.4f}"
+            )
+
+            if (
+                policy_decision.average_reward
+                is None
+            ):
+
+                reward_text = (
+                    "None"
+                )
+
+            else:
+
+                reward_text = (
+                    f"{policy_decision.average_reward:.4f}"
+                )
+
+            print(
+                f"Average Reward : "
+                f"{reward_text}"
             )
 
             print(
-                f"Past Query : "
-                f"{memory_decision.past_query}"
+                f"Combined Score : "
+                f"{policy_decision.combined_score:.4f}"
             )
 
             print(
-                f"Lesson     : "
-                f"{memory_decision.lesson}"
+                f"Past Query     : "
+                f"{policy_decision.past_query}"
+            )
+
+            print(
+                f"Past Outcome   : "
+                f"{policy_decision.past_outcome}"
+            )
+
+            print(
+                f"Lesson         : "
+                f"{policy_decision.lesson}"
             )
 
         else:
+
+            strategy_source = (
+                "router"
+            )
 
             selected_strategy = (
                 router_decision.route
             )
 
             print(
-                "\nNo sufficiently similar "
-                "experience found."
+                "\nNo reward-aware "
+                "strategy found."
             )
 
             print(
@@ -465,8 +721,9 @@ class AdaptiveRetriever:
             )
 
         # ==================================================
-        # Memory says:
-        # local KB is not worth searching again.
+        # External Search Strategy
+        #
+        # Real Web Search is NOT connected yet.
         # ==================================================
 
         if (
@@ -475,12 +732,13 @@ class AdaptiveRetriever:
         ):
 
             print(
-                "\nExperience memory recommends "
+                "\nPolicy recommends "
                 "external search."
             )
 
             print(
-                "Skipping redundant local retrieval."
+                "Skipping redundant "
+                "local retrieval."
             )
 
             grade = (
@@ -494,12 +752,16 @@ class AdaptiveRetriever:
                     strategy_source
                 ),
 
+                "selected_strategy": (
+                    selected_strategy
+                ),
+
                 "router_decision": (
                     router_decision
                 ),
 
-                "memory_strategy": (
-                    memory_decision
+                "policy_decision": (
+                    policy_decision
                 ),
 
                 "initial_route": (
@@ -514,39 +776,53 @@ class AdaptiveRetriever:
 
                 "retry_triggered": False,
 
-                "initial_grade": grade,
+                "initial_grade": (
+                    grade
+                ),
 
-                "final_grade": grade,
+                "final_grade": (
+                    grade
+                ),
 
                 "answer_status": (
                     "external_search_required"
                 ),
 
                 "answer": (
-                    "A similar past experience "
-                    "indicates that the local "
-                    "knowledge base is unlikely "
-                    "to contain enough evidence. "
+                    "A similar historical "
+                    "experience indicates that "
+                    "the local knowledge base "
+                    "is unlikely to contain "
+                    "enough evidence. "
                     "External search is recommended."
                 ),
 
                 "results": [],
             }
 
-            return self._reflect_and_store(
-                execution
+            return (
+                self._reflect_and_store(
+                    execution
+                )
             )
 
         # ==================================================
-        # First-pass retrieval
+        # First-pass Retrieval
         # ==================================================
 
         rewritten_query = None
+
         retry_triggered = False
+
+        # --------------------------------------------------
+        # Direct
+        # --------------------------------------------------
 
         if selected_strategy == "direct":
 
-            initial_route = "direct"
+            initial_route = (
+                "direct"
+            )
 
             results = (
                 self._retrieve_direct(
@@ -554,12 +830,18 @@ class AdaptiveRetriever:
                 )
             )
 
+        # --------------------------------------------------
+        # Rewrite
+        # --------------------------------------------------
+
         elif selected_strategy in {
             "rewrite",
             "rewrite_then_external_search",
         }:
 
-            initial_route = "rewrite"
+            initial_route = (
+                "rewrite"
+            )
 
             (
                 rewritten_query,
@@ -570,16 +852,25 @@ class AdaptiveRetriever:
                 )
             )
 
+        # --------------------------------------------------
+        # Unknown strategy:
+        # fall back to Router
+        # --------------------------------------------------
+
         else:
 
-            # Unknown memory strategy should never break
-            # the pipeline. Fall back to QueryRouter.
-
-            initial_route = (
+            selected_strategy = (
                 router_decision.route
             )
 
-            if initial_route == "rewrite":
+            initial_route = (
+                selected_strategy
+            )
+
+            if (
+                initial_route
+                == "rewrite"
+            ):
 
                 (
                     rewritten_query,
@@ -599,7 +890,7 @@ class AdaptiveRetriever:
                 )
 
         # ==================================================
-        # First Grade
+        # Initial Grade
         # ==================================================
 
         initial_grade = (
@@ -638,7 +929,7 @@ class AdaptiveRetriever:
         # ==================================================
         # Retry
         #
-        # Only DIRECT retrieval gets rewrite retry.
+        # Direct retrieval receives one rewrite retry.
         # ==================================================
 
         if (
@@ -711,13 +1002,14 @@ class AdaptiveRetriever:
             )
 
         # ==================================================
-        # Generation / Abstention
+        # Generation
         # ==================================================
 
         if final_grade.is_sufficient:
 
             print(
-                "\nRetrieval evidence is sufficient."
+                "\nRetrieval evidence "
+                "is sufficient."
             )
 
             print(
@@ -739,60 +1031,63 @@ class AdaptiveRetriever:
                 "generated"
             )
 
-        else:
+        # ==================================================
+        # Rewrite → external-search policy
+        # ==================================================
 
-            # ----------------------------------------------
-            # Memory explicitly recommends:
-            # rewrite, then external search if rewrite fails.
-            # ----------------------------------------------
+        elif (
+            selected_strategy
+            == "rewrite_then_external_search"
+        ):
 
-            if (
-                selected_strategy
-                == "rewrite_then_external_search"
-            ):
+            print(
+                "\nRewrite retrieval remained "
+                "insufficient."
+            )
 
-                print(
-                    "\nRewrite retrieval remained "
-                    "insufficient."
-                )
+            print(
+                "External search is recommended."
+            )
 
-                print(
-                    "External search is recommended."
-                )
+            answer_status = (
+                "external_search_required"
+            )
 
-                answer_status = (
-                    "external_search_required"
-                )
-
-                answer = (
-                    "The local knowledge base still "
-                    "does not provide enough evidence "
-                    "after query rewriting. "
-                    "External search is recommended."
-                )
-
-            else:
-
-                print(
-                    "\nRetrieval evidence is insufficient."
-                )
-
-                print(
-                    "Skipping answer generation."
-                )
-
-                answer_status = (
-                    "insufficient_evidence"
-                )
-
-                answer = (
-                    "I do not have enough evidence "
-                    "in the knowledge base to answer "
-                    "this question."
-                )
+            answer = (
+                "The local knowledge base "
+                "still does not provide "
+                "enough evidence after "
+                "query rewriting. "
+                "External search is recommended."
+            )
 
         # ==================================================
-        # Complete Execution State
+        # Safe Abstention
+        # ==================================================
+
+        else:
+
+            print(
+                "\nRetrieval evidence "
+                "is insufficient."
+            )
+
+            print(
+                "Skipping answer generation."
+            )
+
+            answer_status = (
+                "insufficient_evidence"
+            )
+
+            answer = (
+                "I do not have enough evidence "
+                "in the knowledge base to answer "
+                "this question."
+            )
+
+        # ==================================================
+        # Execution State
         # ==================================================
 
         execution = {
@@ -802,12 +1097,16 @@ class AdaptiveRetriever:
                 strategy_source
             ),
 
+            "selected_strategy": (
+                selected_strategy
+            ),
+
             "router_decision": (
                 router_decision
             ),
 
-            "memory_strategy": (
-                memory_decision
+            "policy_decision": (
+                policy_decision
             ),
 
             "initial_route": (
@@ -850,9 +1149,13 @@ class AdaptiveRetriever:
         # ==================================================
         # Reflection
         # +
-        # Experience Memory Write
+        # Experience Memory
+        # +
+        # Reward
         # ==================================================
 
-        return self._reflect_and_store(
-            execution
+        return (
+            self._reflect_and_store(
+                execution
+            )
         )
