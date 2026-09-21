@@ -1,0 +1,30 @@
+[
+  {
+    "query": "What is DSPy?",
+    "outcome": "success_first_pass",
+    "success": true,
+    "initial_route": "direct",
+    "final_route": "direct",
+    "retry_triggered": false,
+    "initial_score": 5.97988748550415,
+    "final_score": 5.97988748550415,
+    "score_delta": 0.0,
+    "recommended_strategy": "prefer_direct",
+    "lesson": "The original query produced sufficient retrieval evidence without query rewriting.",
+    "created_at": "2026-09-21T16:09:32"
+  },
+  {
+    "query": "Can you tell me what DSPy is?",
+    "outcome": "success_first_pass",
+    "success": true,
+    "initial_route": "direct",
+    "final_route": "direct",
+    "retry_triggered": false,
+    "initial_score": 1.7881863117218018,
+    "final_score": 1.7881863117218018,
+    "score_delta": 0.0,
+    "recommended_strategy": "prefer_direct",
+    "lesson": "The original query produced sufficient retrieval evidence without query rewriting.",
+    "created_at": "2026-09-21T16:09:43"
+  }
+]
